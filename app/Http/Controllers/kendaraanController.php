@@ -7,6 +7,7 @@ use App\Models\mobil;
 use App\Models\motor;
 use App\Models\truck;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class kendaraanController extends Controller
 {
@@ -134,19 +135,33 @@ class kendaraanController extends Controller
         return redirect('kendaraan')->with('flash_message', 'Kendaraan Updated!');
     }
     
-    
     public function destroy($id)
     {
-        $kendaraan = Kendaraan::find($id);
-    
-        if (!$kendaraan) {
-            return redirect('kendaraan')->with('error', 'Kendaraan not found!');
+    try {
+        // Hapus terlebih dahulu transaksi terkait dengan buku
+            DB::table('transaksis')->where('id_kendaraan', $id)->delete();
+
+        // Kemudian, hapus buku itu sendiri
+            kendaraan::destroy($id);
+
+            return redirect()->route('kendaraans.tampilkend')->with('flash_message', 'Kendaraan deleted!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('flash_message', 'Error: ' . $e->getMessage());
         }
-    
-        // Sekarang baru hapus baris induk (kendaraan)
-        $kendaraan->delete();
-    
-        return redirect('kendaraan')->with('flash_message', 'Kendaraan deleted!');
     }
+    
+    // public function destroy($id)
+    // {
+    //     $kendaraan = Kendaraan::find($id);
+    
+    //     if (!$kendaraan) {
+    //         return redirect('kendaraan')->with('error', 'Kendaraan not found!');
+    //     }
+    
+    //     // Sekarang baru hapus baris induk (kendaraan)
+    //     $kendaraan->delete();
+    
+    //     return redirect('kendaraan')->with('flash_message', 'Kendaraan deleted!');
+    // }
     
 }

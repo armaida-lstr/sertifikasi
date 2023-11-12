@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class customerController extends Controller
 {
@@ -101,15 +102,29 @@ class customerController extends Controller
      */
     public function destroy($id)
     {
-        $customer = Customer::find($id);
-    
-        if (!$customer) {
-            return redirect('customer')->with('error', 'Customer not found!');
+    try {
+        // Hapus terlebih dahulu transaksi terkait dengan buku
+            DB::table('transaksis')->where('id_customer', $id)->delete();
+
+        // Kemudian, hapus buku itu sendiri
+            customer::destroy($id);
+
+            return redirect()->route('customers.tampilcust')->with('flash_message', 'Customer deleted!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('flash_message', 'Error: ' . $e->getMessage());
         }
-    
-        $customer->delete();
-    
-        return redirect('customer')->with('flash_message', 'Customer deleted!');
     }
+    // public function destroy($id)
+    // {
+    //     $customer = Customer::find($id);
+    
+    //     if (!$customer) {
+    //         return redirect('customer')->with('error', 'Customer not found!');
+    //     }
+    
+    //     $customer->delete();
+    
+    //     return redirect('customer')->with('flash_message', 'Customer deleted!');
+    // }
     
 }
